@@ -1,7 +1,7 @@
 # blog
 前端技术博客 front-end technology blog
 
-*目录*
+**目录**
 
 * 前端语言专栏
 
