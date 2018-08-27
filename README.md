@@ -5,7 +5,7 @@
 
 * 前端语言专栏
 
-1. [html]('./html/html.md')
+1. [html](/html/html.md)
 
 2. css
 
