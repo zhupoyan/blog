@@ -21,7 +21,7 @@ blog新开张不定期更新
 
 <br>
    
-**目录**
+## 目录
 
 <br>
 
@@ -33,7 +33,7 @@ blog新开张不定期更新
 
 2. [css](/language/css)
 
-* [flex布局](/language/css/flex.md)
+> * [flex布局](/language/css/flex.md)
 
 3. javascript
 
