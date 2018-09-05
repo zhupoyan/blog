@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" type="text/css" href="./main.css">
+  <title>flex</title>
+</head>
+<body>
+  <div class="flex-container">
+    
+    <section class="section">
+      <div class="flex">
+        <div class="flex-item bg-orange">A</div>
+        <div class="flex-item bg-orange">B</div>
+        <div class="flex-item bg-orange">C</div>
+      </div>
+      <p class="remark">父容器display: flex，子容器什么都不设置，是不会显示出flex应有的效果的。</p>
+
+      <div class="flex">
+        <div class="flex-item bg-orange flex-grow-1">1</div>
+        <div class="flex-item bg-orange flex-grow-1">1</div>
+        <div class="flex-item bg-orange flex-grow-1">1</div>
+      </div>
+      <p class="remark">子容器flex-grow: 1，相当于将父容器三等分。</p>
+
+      <div class="flex">
+        <div class="flex-item bg-orange flex-grow-1">1</div>
+        <div class="flex-item bg-orange flex-grow-1">1</div>
+        <div class="flex-item bg-yellow flex-grow-2">2</div>
+      </div>
+      <p class="remark">前两个子容器flex-grow: 1，最后一个子容器flex-grow: 2，相当于将父容器按1:1:2比例等分。</p>
+
+      <div class="flex">
+        <div class="flex-item bg-orange flex-grow-1 flex-shrink-1">1111111111111111111111</div>
+        <div class="flex-item bg-orange flex-grow-1 flex-shrink-1">1111111111111111111111</div>
+        <div class="flex-item bg-yellow flex-grow-2 flex-shrink-1">2222222222222222222222</div>
+      </div>
+      <p class="remark">
+        前两个子容器flex-grow: 1，最后一个子容器flex-grow: 2，
+        三个子容器均设置flex-shrink：1，
+        当内容过多导致父容器剩余空间不足时，子容器大小比例为1:1:1，
+        若父容器剩余空间足够，则比例恢复为1:1:2。
+      </p>
+
+      <div class="flex">
+        <div class="flex-item bg-orange flex-grow-1 flex-shrink-2">1111111111111111111111</div>
+        <div class="flex-item bg-yellow flex-grow-1 flex-shrink-1">1111111111111111111111</div>
+        <div class="flex-item bg-green flex-grow-1 flex-shrink-3">1111111111111111111111</div>
+      </div>
+      <p class="remark">
+        三个子容器均设置flex-grow：1，
+        三个子容器分别设置flex-shrink为2/1/3，
+        当内容过多导致父容器剩余空间不足时，子容器大小比例为1/2:1:1/3，即3:6:2。
+      </p>
+
+    </section>
+    
+  </div>
+</body>
+</html>
