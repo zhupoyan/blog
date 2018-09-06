@@ -6,6 +6,7 @@ p {
   margin: 0;
 }
 
+body,
 div {
   box-sizing: border-box;
 }
@@ -21,9 +22,26 @@ p {
 .remark {
   padding: 15px;
   margin-top: 15px;
+  background-color: #eee;
+}
+
+.remark p {
   font-size: 14px;
   line-height: 1.5em;
+}
+
+.tip {
+  padding: 15px;
+  margin-top: 15px;
   background-color: #eee;
+}
+
+.tip p {
+  padding-left: 10px;
+  border-left: 3px solid #999;
+  font-size: 14px;
+  line-height: 1.5em;
+  color: #999;
 }
 
 .bg-orange {
@@ -45,9 +63,17 @@ p {
   border: 5px solid red;
 }
 
+.flex.flex-wrap {
+  flex-wrap: wrap;
+}
+
 .flex-item {
   text-align: center;
   word-break: break-all
+}
+
+.flex-item.border-r-red {
+  border-right: 1px solid red;
 }
 
 .flex-item.flex-grow-1 {
@@ -68,4 +94,24 @@ p {
 
 .flex-item.flex-shrink-3 {
   flex-shrink: 3;
+}
+
+.flex-item.flex-basis-16-per {
+  flex-basis: 16%;
+}
+
+.flex-item.flex-basis-20-per {
+  flex-basis: 20%;
+}
+
+.flex-item.flex-basis-25-per {
+  flex-basis: 25%;
+}
+
+.flex-item.flex-basis-50-per {
+  flex-basis: 50%;
+}
+
+.flex-item.flex-basis-33-per {
+  flex-basis: 33%;
 }
