@@ -1,5 +1,13 @@
 ﻿# flex 布局
 
+<br>
+
+**更新动态：**
+
+> 2018.9.8: 完成 前端语言专栏-css-flex布局
+
+<br>
+
 **主要参考：**
 
 [Flex 布局教程：语法篇](http://www.ruanyifeng.com/blog/2015/07/flex-grammar.html)
@@ -24,7 +32,9 @@
 
 > 然后上网翻翻一些技术文章或者文档啥的，觉得自己好像写的也没啥问题，大概是哪个属性不对吧？然后一顿瞎改。这个时候通常就是两个结果，一是运气好的可能就真的改出了自己想要的样式，但是哪天需要调整的时候发现不会调了，怎么调怎么崩；二是怎么改都没改出来效果。包括本菜在内也经历过这个阶段= =。
 
-> 于是乎觉得自己太渣了，不行我不能当个渣渣，我可是个有梦想的人！一跺脚就花时间去攻读研究flex布局这玩意，搞完发现研究前跟研究后真的是两个世界，有些内容还是我写完这篇文章才发现的呢！现在也可以很大胆的去用它了。下面就开始跟大家分享一下心得。强推附属的demo项目，文章内的附图都摘自其中，建议大家都下载下来看看。
+> 于是乎觉得自己太渣了，不行我不能当个渣渣，我可是个有梦想的人！一跺脚就花时间去攻读研究flex布局这玩意，搞完发现研究前跟研究后真的是两个世界，有些内容还是我写完这篇文章才发现的呢！现在也可以很大胆的去用它了。下面就开始跟大家分享一下心得。**强推附属的demo项目，文章内的附图都摘自其中，建议大家都下载下来看看。**
+
+<br>
 
 **正题：**
 
@@ -46,6 +56,8 @@
 
 接下来就一起看看flex的正确的打开方式和一些需要关注的点吧！
 
+<br>
+
 ### 子容器属性：flex-grow、flex-shrink 与 flex-basis
 
 ![1.png](./images/flex/1.png)
@@ -56,4 +68,84 @@
 
 子容器flex-grow: 1，相当于将父容器三等分。短短的一行属性就已经开始突显出flex的特点了。
 
+![3.png](./images/flex/3.png)
 
+前两个子容器flex-grow: 1，最后一个子容器flex-grow: 2，相当于将父容器按1:1:2比例等分。
+
+![4.png](./images/flex/4.png)
+
+前两个子容器flex-grow: 1，最后一个子容器flex-grow: 2， 三个子容器均设置flex-shrink：1， 当内容过多导致父容器剩余空间不足时，子容器大小比例为1:1:1， 若父容器剩余空间足够，则比例恢复为1:1:2。
+
+![5.png](./images/flex/5.png)
+
+三个子容器均设置flex-grow：1， 三个子容器分别设置flex-shrink为2/1/3， 当内容过多导致父容器剩余空间不足时，子容器大小比例为1/2:1:1/3，即3:6:2。
+
+![6.png](./images/flex/6.png)
+
+子容器的flex-basis依次设置为16%、25%、33%。
+
+### 子容器换行
+
+![7.png](./images/flex/7.png)
+
+父容器设置flex-wrap: wrap
+
+所有子容器均设置flex-grow: 1
+
+第一行子容器设置flex-basis: 25%
+
+第二行子容器设置flex-basis: 50%
+
+第三行子容器设置flex-basis: 33%
+
+第四行子容器设置flex-basis: 20%
+
+第五行子容器设置flex-basis: 16%
+
+由于每行的子容器对应设置了flex-basis，即设置了在分配空间时子容器原本该占有的比例， 则当每行的子容器所占比例超过100%时，并且父容器设置了flex-wrap为wrap， 则子容器将自动换行，同时由于设置了flex-grow为1，所以在新的一行内子容器自动撑开。
+
+![8.png](./images/flex/8.png)
+
+所有设置同 “子容器换行” 第一部分的设置
+
+本例唯一不同的是没有设置flex-grow为1。
+
+### 子容器排列
+
+![9.png](./images/flex/9.png)
+
+子容器依次设置flex-basis为16%、50%、25%
+
+父容器依次设置justify-content为flex-start、flex-end、center、space-between、space-around
+
+![10.png](./images/flex/10.png)
+
+![11.png](./images/flex/11.png)
+
+![12.png](./images/flex/12.png)
+
+![13.png](./images/flex/13.png)
+
+![14.png](./images/flex/14.png)
+
+子容器依次设置flex-basis为16%、50%、25%
+
+父容器依次设置align-items为flex-start、flex-end、center、space-between、space-around
+
+![15.png](./images/flex/15.png)
+
+子容器依次设置flex-basis为16%、50%、25%
+
+子容器依次设置order为 **1/3/2**
+
+![16.png](./images/flex/16.png)
+
+子容器依次设置flex-basis为16%、50%、25%
+
+第三个子容器设置align-self为flex-end
+
+<br>
+
+flex布局暂时介绍到这里，说不定哪一天突然觉得需要补充什么知识点，本菜就会乖乖跑回来更新一下！更新的动态会显示在blog首页和本文开头！
+
+喜欢的话记得随手star噢！O(∩_∩)O ~~~
