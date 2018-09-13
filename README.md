@@ -5,7 +5,11 @@
 
 **更新动态：**
 
-> 2018.9.8: 完成 前端语言专栏-css-flex布局
+> C:新建
+> U:修改
+
+> 2018.9.14: ZPY's 语录(C)
+> 2018.9.8: 前端语言专栏-css-flex布局(C)
 
 <br>
 
@@ -41,7 +45,8 @@ blog新开张不定期更新
    
 ## 目录
 
-<br>
+> C:新建
+> U:修改
 
 * 前端语言专栏
 
@@ -51,7 +56,7 @@ blog新开张不定期更新
 
 2. [css](/language/css)
 
-> * [flex布局](/language/css/flex.md)
+> * [flex布局](/language/css/flex.md) 2018.9.8(C)
 
 3. javascript
 
@@ -72,3 +77,11 @@ blog新开张不定期更新
 * 项目相关专栏
 
 <br>
+
+* 其它内容专栏
+
+<br>
+
+1. [ZPY's 语录(频繁动态更新，想到觉得需要记录的内容就更新！)](/other/experience/experience.md) 2018.9.14(C)
+
+2. [blog完整更新日志](/other/updateLog/updateLog.md)
