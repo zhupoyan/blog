@@ -10,10 +10,73 @@
   <title>elementPosition</title>
 </head>
 <body>
-  <div class="elementPosition-container">
+  
+  <div class="container">
 
-    <section class="section"></section>
+    <div class="content">
+      <p>我叫content</p>
+      <p>height: 150px;</p>
+    </div>
+    
+    <div id="box">
+      <p>我叫box</p>
+      <br>
+      <p>width: 360px;</p>
+      <p>height: 180px;</p>
+      <p>padding: 22px;</p>
+      <p>margin: 0 auto;</p>
+      <p>box-sizing: content-box;</p>
+      <br>
+      <p style="white-space: nowrap;">我叫box我叫box我叫box我叫box我叫box我叫box我叫box我叫box我叫box我叫box我叫box我叫box我叫box我叫box我叫box我叫box我叫box我叫box</p>
+      <br>
+      <p>width: 360px;</p>
+      <p>height: 180px;</p>
+      <p>padding: 22px;</p>
+      <p>margin: 0 auto;</p>
+      <p>box-sizing: content-box;</p>
+      <br>
+      <p>width: 360px;</p>
+      <p>height: 180px;</p>
+      <p>padding: 22px;</p>
+      <p>margin: 0 auto;</p>
+      <p>box-sizing: content-box;</p>
+      <p class="tip tip3">border: 18px;<br>border-left: 28px;</p>
+    </div>
+
+    <div class="content">
+      <p>我叫content</p>
+      <p>height: 150px;</p>
+    </div>
+
+    <p class="tip tip1">我叫container</p>
+    <p class="tip tip2">padding: 30px;</p>
+    <p class="tip tip4">border: 16px;</p>
 
   </div>
+
+  <div class="remark">
+    <p>box:</p>
+    <br>
+    <p id="boxOffsetWidth">document.getElementById('box').offsetWidth: <span></span></p>
+    <p id="boxOffsetHeight">document.getElementById('box').offsetHeight: <span></span></p>
+    <p id="boxOffsetLeft">document.getElementById('box').offsetLeft: <span></span></p>
+    <p id="boxOffsetTop">document.getElementById('box').offsetTop: <span></span></p>
+    <br>
+    <p id="boxClientWidth">document.getElementById('box').clientWidth: <span></span></p>
+    <p id="boxClientHeight">document.getElementById('box').clientHeight: <span></span></p>
+    <p id="boxClientLeft">document.getElementById('box').clientLeft: <span></span></p>
+    <p id="boxClientTop">document.getElementById('box').clientTop: <span></span></p>
+    <br>
+    <p id="boxScrollWidth">document.getElementById('box').scrollWidth: <span></span></p>
+    <p id="boxScrollHeight">document.getElementById('box').scrollHeight: <span></span></p>
+    <p id="boxScrollLeft">document.getElementById('box').scrollLeft: <span></span></p>
+    <p id="boxScrollTop">document.getElementById('box').scrollTop: <span></span></p>
+  </div>
+
+  <script
+    src="https://code.jquery.com/jquery-1.12.4.min.js"
+    integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ="
+    crossorigin="anonymous"></script>
+  <script type="text/javascript" src="./main.js"></script>
 </body>
 </html>
