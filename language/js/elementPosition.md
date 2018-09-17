@@ -199,4 +199,20 @@ offsetWidth = 360px(box的width 和 元素竖直方向滚动条的width) + 22px 
 
 * offsetHeight:
 
+元素的高度，包括了内容的height，元素的padding，元素水平方向滚动条的width和元素的border。故：
 
+offsetHeight = 180px(box的width 和 元素竖直方向滚动条的width) + 22px * 2(box的padding，左右两边之和) + 18px * 2(元素的border) = 260px
+
+* offsetLeft:
+
+元素相对于offsetParent的左边界偏移的像素值，详细说明就是box的左border的左边缘开始一直到父容器的左border的右边缘。由于box的margin水平方向设置为auto，body的width为600，那么box的offsetLeft就可用body的width减去container的border，再减去box的offsetWidth，最后除以2，即：
+
+offsetLeft = ( 600px(body的width) - 16px * 2(container的border) - 450px(box的offsetWidth) ) / 2 = 59px
+
+* offsetTop:
+
+元素相对于offsetParent的上边界偏移的像素值，详细说明就是box的上border的上边缘开始一直到父容器的上border的下边缘。box的offsetTop可用content的height，加上container的上padding，即：
+
+offsetTop = 150px(content的height) + 30px(container的上padding) = 180px
+
+* clientWidth
