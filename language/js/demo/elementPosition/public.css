@@ -1,0 +1,10 @@
+.remark {
+  padding: 15px;
+  margin-top: 15px;
+  background-color: #eee;
+}
+
+.remark p {
+  font-size: 14px;
+  line-height: 1.5em;
+}
