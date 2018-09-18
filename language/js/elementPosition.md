@@ -4,7 +4,7 @@
 
 **更新动态：**
 
-> 2018.9.?: 前端语言专栏-css-页面元素的位置相关(C)
+> 2018.9.18: 前端语言专栏-css-页面元素的位置相关(C)
 
 <br>
 
@@ -37,6 +37,34 @@
 ![2.png](./images/elementPosition/2.png)
 
 如图所示，拖拽浏览器窗口使得width=600，选中html标签，获得其width为583。那么有人就会问了，所以浏览器滚动条大小（宽度）就是600-583=17咯？答案将在介绍完本文所有内容后揭晓！
+
+<br>
+
+**box-sizing**
+
+(参考MDN)
+
+box-sizing 属性用于更改用于计算元素宽度和高度的默认的 CSS 盒子模型。可以使用此属性来模拟不正确支持CSS盒子模型规范的浏览器的行为。
+
+box-sizing 属性可以被用来调整这些表现:
+
+* content-box  是默认值。如果你设置一个元素的宽为100px，那么这个元素的内容区会有100px宽，并且任何边框和内边距的宽度都会被增加到最后绘制出来的元素宽度中。
+
+* border-box 告诉浏览器去理解你设置的边框和内边距的值是包含在width内的。也就是说，如果你将一个元素的width设为100px,那么这100px会包含其它的border和padding，内容区的实际宽度会是width减去border + padding的计算值。大多数情况下这使得我们更容易的去设定一个元素的宽高。
+
+> 一些专家甚至建议所有的Web开发者们将所有的元素的box-sizing都设为border-box。
+
+可能有些同学看到这里就会想说，“说人话！”，好的好的马上来：
+
+一个width设置为200px、border为10px、padding为30px的元素，box-sizing属性当被设置为content-box时，它的盒子宽度为：
+
+200px + 10px * 2 + 30px * 2 = 280px
+
+box-sizing属性当被设置为border-box时，它的盒子宽度为：
+
+200px (是的就没有然后了)
+
+那么同学们稍微想想应该就很清楚了，content-box的盒模型设置width，设置的是它内容的宽度；border-box的盒模型设置width，设置的是它盒模型的宽度。
 
 <br>
 
@@ -216,3 +244,73 @@ offsetLeft = ( 600px(body的width) - 16px * 2(container的border) - 450px(box的
 offsetTop = 150px(content的height) + 30px(container的上padding) = 180px
 
 * clientWidth
+
+元素内部宽度，包含box内容的width和box的padding，但不包括垂直滚动条的width。由已知条件可知滚动条的宽度为17px，那么：
+
+clientWidth = ( 360px - 17px )(box内容的width) + 22 * 2(box的padding) = 387px
+
+* clientHeight
+
+元素内部高度，包含box内容的width和box的padding，但不包括水平滚动条的width。由已知条件可知滚动条的宽度为17px，那么：
+
+clientHeight = ( 180px - 17px )(box内容的height) + 22 * 2(box的padding) = 207px
+
+* clientLeft
+
+元素左border的width，即：
+
+clientLeft = 28px
+
+* clientTop
+
+元素上border的width，即：
+
+clientTop = 18px
+
+* scrollWidth
+
+元素内，水平方向上，元素内部（排除了margin），除了border的width以外的所有width总和，包括当内容过多时遮挡的内容部分。由于这个大小不好计算，所以最好依靠浏览器开发者工具去选择box元素查看对应值，或是在控制台通过js获取。
+
+* scrollHeight
+
+元素内，竖直方向上，元素内部（排除了margin），除了border的width以外的所有height总和，包括当内容过多时遮挡的内容部分。同上，由于这个大小不好计算，所以最好依靠浏览器开发者工具去选择box元素查看对应值，或是在控制台通过js获取。
+
+* scrollLeft
+
+元素水平滚动条到元素内部左侧（左border的右边缘）的距离，当没有滚动条出现或是滚动条处于起始位置时，为0，其它情况下随着滚动条滚动动态变化。
+
+* scrollTop
+
+元素垂直滚动条到元素内部上侧（上border的下边缘）的距离，当没有滚动条出现或是滚动条处于起始位置时，为0，其它情况下随着滚动条滚动动态变化。
+
+<br>
+
+通过上面简单粗暴的描述，相信大家应该对这些属性有了更深一步的了解了，但是这仅仅是最简单的一个场景，项目中难免会遇到比这些复杂的情况，但是万变不离其宗，属性的定义是不变的，只要牢牢掌握，相信项目中遇到的此类问题都能迎刃而解！
+
+本文结束前回应一下上文的浏览器滚动条width计算的问题！
+
+**浏览器滚动条width如何计算**
+
+其实计算浏览器滚动条width的方法有挺多的，这里简单介绍其中的几种常见方法：
+
+* 利用offsetWidth(offsetHeight)和clientWidth(clientHeight)
+
+由于offsetWidth的定义是元素border的width加上元素padding加上元素内容width，是包含垂直滚动条的width的，clientWidth的定义是元素padding加上元素内容width，是不包含垂直滚动条的width的，所以可以利用这一点计算出滚动条width的数值。
+
+还是拿上面的demo举例，box的offsetWidth为450px，clientWidth为387px，水平方向的border分别为28px和18px，那么垂直滚动条的width为：
+
+450px(box的offsetWidth) - ( 28px + 18px )(box的左右border的width) - 387px(box的clientWidth) = 17px
+
+* 利用window的innerWidth和body的offsetWidth
+
+简单介绍window.innerWidth，它是浏览器视口（窗口）的宽度，是包含垂直滚动条的width的，那么垂直滚动条的width就可以通过window.innerWidth与document.body.offsetWidth的差值计算得出：
+
+617px(window.innerWidth) - 600px(document.body.offsetWidth) = 17px
+
+**结尾**
+
+本人认为这部分的知识，只要是项目中涉及到元素计算的，肯定跟这个脱离不了干系！所以特别重要！
+
+希望大家能通过这篇文章学习到自己之前对于这方面知识觉得有空白的地方，相信大家理解了之后一定身心舒畅！有种打通了任督二脉的感觉！
+
+喜欢本文的小伙伴可以随手点一下star！！！

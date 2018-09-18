@@ -10,6 +10,8 @@
 
 <br>
 
+> 2018.9.18: 前端语言专栏-css-页面元素的位置相关(C)
+
 > 2018.9.14: ZPY's 语录(C)
 
 > 2018.9.8: 前端语言专栏-css-flex布局(C)
@@ -63,7 +65,7 @@ blog新开张不定期更新
 
 3. javascript
 
-> * [页面元素的位置相关](/language/js/elementPosition.md)
+> * [页面元素的位置相关](/language/js/elementPosition.md) 2018.9.18(C)
 
 <br>
 
