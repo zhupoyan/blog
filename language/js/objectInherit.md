@@ -57,4 +57,27 @@
 
     a.__proto__.__proto__ === null // true
 
-得出结论，这个叫a的空对象，原型prototype未定义，除了原型链__proto__以外没有任何属性，原型链里面的内容为原生对象Object的原型，且Object里面不再有原型链__proto__，相关结论大家可以自己在浏览器控制台测试，下文不再重复。
+这个叫a的空对象，原型prototype未定义，除了原型链__proto__以外没有任何属性，原型链里面的内容为原生对象Object的原型，且Object里面不再有原型链__proto__，相关结论大家可以自己在浏览器控制台测试，下文不再重复。
+
+再来看看一个新定义的空函数里面有哪些内容：
+
+    var a = function () {} // undefined
+
+    a // ƒ () {}
+
+    a.prototype
+    // {constructor: ƒ}:
+    //   constructor: ƒ ()
+    //   __proto__: Object
+
+    a.prototype.constructor === a // true
+
+    a.__proto__ // ƒ () { [native code] }
+
+    a.__proto__ === Function.prototype // true
+    
+    a.__proto__ === Function.__proto__ // true
+
+    Function.__proto__.__proto__ === Object.prototype // true
+
+这个叫a的空函数，它的原型内除了原型链外还有一个叫constructor的属性，且值即a本身，a的原型链即原生Function对象的原型，也是原生Function对象的原型链，所以后两者是全等关系，这个比较神奇。由于Function本质也是对象，故它的原型链同样追溯到原生Object对象的原型。
