@@ -10,6 +10,8 @@
 
 <br>
 
+> 2018.10.12: 前端语言专栏-js-对象的继承及对象相关内容探究(C)
+
 > 2018.9.18: 前端语言专栏-js-页面元素的位置相关(C)
 
 > 2018.9.14: ZPY's 语录(C)
@@ -67,7 +69,7 @@ blog新开张不定期更新
 
 > * [页面元素的位置相关](/language/js/elementPosition.md) 2018.9.18(C)
 
-> * [对象的继承及对象相关内容探究](/language/js/objectInherit.md)
+> * [对象的继承及对象相关内容探究](/language/js/objectInherit.md) 2018.10.12(C)
 
 <br>
 
