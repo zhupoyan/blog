@@ -248,4 +248,28 @@ isURLSameOrigin方法，从字面理解应该是判断参数是否符合同源�
 
 #### CancelToken.js
 
+从文件底部可以看到这个模块的export就是名为CancelToken的方法，所以直接看这个方法的内容。从注释看，这个方法的作用是发起取消ajax请求的操作。
 
+    if (typeof executor !== 'function') {
+      throw new TypeError('executor must be a function.');
+    }
+
+这里对参数executor做出了限制，若非function类型则抛出类型错误。
+
+    var resolvePromise;
+    this.promise = new Promise(function promiseExecutor(resolve) {
+      resolvePromise = resolve;
+    });
+
+    var token = this;
+    executor(function cancel(message) {
+      if (token.reason) {
+        // Cancellation has already been requested
+        return;
+      }
+
+      token.reason = new Cancel(message);
+      resolvePromise(token.reason);
+    });
+
+这里定义了一个局部变量resolvePromise，并给方法添加一个Promise类型变量，Promise内容是将resolve回调赋值给变量resolvePromise。接着将CancelToken实例对象赋值给局部变量token，然后执行参数executor方法，并传递一个方法，可接收一个名为message的参数。这个方法首先判断了，当前CancelToken实例对象是否已经有名为reason的属性，若存在且不为false，表示取消ajax请求的操作已经执行了，就不再执行后续的操作了，否则往下走，给当前CancelToken实例对象定义reason属性为一个Cancel对象，并将message作为参数，随后执行resolvePromise方法，并将reason属性作为参数。（这里确实很绕，需要花点时间，结合实际场景更易理解）
