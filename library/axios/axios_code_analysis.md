@@ -133,3 +133,119 @@ isFormData方法引用自utils模块，翻看代码得知这是用来判断参�
 结合注释的内容可以分析出，这段代码主要是为了解决IE 8/9中跨域请求的问题，提供兼容性支持。
 
 isURLSameOrigin方法，从字面理解应该是判断参数是否符合同源的条件，翻看代码后也验证了这一点。
+
+    // HTTP basic authentication
+    if (config.auth) {
+      var username = config.auth.username || '';
+      var password = config.auth.password || '';
+      requestHeaders.Authorization = 'Basic ' + btoa(username + ':' + password);
+    }
+
+这里比较简单，判断配置对象参数中的auth字段是否存在并且不为false，若满足则给请求headers添加Authorization字段，值为auth.username和auth.password的base64编码值，btoa方法的引用，取自于window.btoa，若不存在则取自/helpers/btoa，里面是包含了一些兼容性的写法的封装后的btoa方法。
+
+稍微注意一下如果config.auth字段存在，那么请求headers的Authorization字段值是会被重写的，所以如果在这之前有给这个字段赋值的就要小心了。
+
+    request.open(config.method.toUpperCase(), buildURL(config.url, config.params, config.paramsSerializer), true);
+
+    // Set the request timeout in MS
+    request.timeout = config.timeout;
+
+这里是初始化一个ajax请求，并赋予配置对象中的timeout参数。buildURL方法的作用是接收配置对象的url、params、paramsSerializer三个参数，用paramsSerializer方法对params进行序列化，再将结果与url拼接并返回。
+
+    // Listen for ready state
+    request[loadEvent] = function handleLoad() {
+      if (!request || (request.readyState !== 4 && !xDomain)) {
+        return;
+      }
+
+      // The request errored out and we didn't get a response, this will be
+      // handled by onerror instead
+      // With one exception: request that using file: protocol, most browsers
+      // will return status as 0 even though it's a successful request
+      if (request.status === 0 && !(request.responseURL && request.responseURL.indexOf('file:') === 0)) {
+        return;
+      }
+
+      // Prepare the response
+      var responseHeaders = 'getAllResponseHeaders' in request ? parseHeaders(request.getAllResponseHeaders()) : null;
+      var responseData = !config.responseType || config.responseType === 'text' ? request.responseText : request.response;
+      var response = {
+        data: responseData,
+        // IE sends 1223 instead of 204 (https://github.com/axios/axios/issues/201)
+        status: request.status === 1223 ? 204 : request.status,
+        statusText: request.status === 1223 ? 'No Content' : request.statusText,
+        headers: responseHeaders,
+        config: config,
+        request: request
+      };
+
+      settle(resolve, reject, response);
+
+      // Clean up request
+      request = null;
+    };
+
+这里是定义监控状态变化的事件方法。开头的部分主要是处理ajax请求错误的情况，和另一种特殊的情况，接着是将返回的response对象准备好，settle方法主要是处理resolve和reject，将需要返回给对应回调方法的参数准备好，最后将ajax请求对象清空。
+
+往下的两个方法分别定义ajax请求的onerror和ontimeout事件方法，里面均是执行reject回调方法并传递定制的error对象，最后将ajax请求对象清空。
+
+    // Add xsrf header
+    // This is only done if running in a standard browser environment.
+    // Specifically not if we're in a web worker, or react-native.
+    if (utils.isStandardBrowserEnv()) {
+      var cookies = require('./../helpers/cookies');
+
+      // Add xsrf header
+      var xsrfValue = (config.withCredentials || isURLSameOrigin(config.url)) && config.xsrfCookieName ?
+          cookies.read(config.xsrfCookieName) :
+          undefined;
+
+      if (xsrfValue) {
+        requestHeaders[config.xsrfHeaderName] = xsrfValue;
+      }
+    }
+
+这里是给请求headers添加csrf/xsrf头的（csrf/xsrf是啥，这部分的内容可大可小，但是很重要！给个参考的中文名叫，“跨源访问”，其余请自行百度！），且只在标准浏览器环境下执行。字段名从config.xsrfHeaderName获取，默认值为X-XSRF-TOKEN，对应值从cookies中的特定字段的value中获取，这个特定字段取自config.xsrfCookieName，默认值为XSRF-TOKEN。
+
+    // Add headers to the request
+    if ('setRequestHeader' in request) {
+      utils.forEach(requestHeaders, function setRequestHeader(val, key) {
+        if (typeof requestData === 'undefined' && key.toLowerCase() === 'content-type') {
+          // Remove Content-Type if data is undefined
+          delete requestHeaders[key];
+        } else {
+          // Otherwise add header to the request
+          request.setRequestHeader(key, val);
+        }
+      });
+    }
+
+这里是遍历请求headers参数对象，将各个设定值逐个set进XHR对象实例里面，对content-type这个字段又做了一次处理，有印象的童鞋已经发现一开始已经处理过一次了，这里处理的原因和方式跟开头是一致的。
+
+往下基本就是，config里面存在的其余字段，往XHR对象实例对应赋值，方法的话对应地给事件绑定上。
+
+    if (config.cancelToken) {
+      // Handle cancellation
+      config.cancelToken.promise.then(function onCanceled(cancel) {
+        if (!request) {
+          return;
+        }
+
+        request.abort();
+        reject(cancel);
+        // Clean up request
+        request = null;
+      });
+    }
+
+这里是处理config中的cancelToken参数。若此字段存在，表示要取消发起请求，执行XHR对象的abort方法，调用reject回调传递cancel参数，将XHR对象实例设为空值。
+
+最后XHR执行send方法发起请求。
+
+### /cancel
+
+取消ajax请求模块的主体，浏览一下各个文件容易判断出是CancelToken.js，我们从这开始分析。
+
+#### CancelToken.js
+
+
