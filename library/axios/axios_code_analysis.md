@@ -116,4 +116,20 @@ isFormData方法引用自utils模块，翻看代码得知这是用来判断参�
 
 **XDomainRequest [https://developer.mozilla.org/zh-CN/docs/Web/API/XDomainRequest](https://developer.mozilla.org/zh-CN/docs/Web/API/XDomainRequest)**
 
+> 摘要：
 
+> XDomainRequest是在IE8和IE9上的HTTP access control (CORS) 的实现，在IE10中被 包含CORS的XMLHttpRequest 取代了，如果你的开发目标是IE10或IE的后续版本，或想要支待其他的浏览器，你需要使用标准的HTTP access control。
+
+> 该接口可以发送GET和POST请求
+
+**withCredentials [https://developer.mozilla.org/zh-CN/docs/Web/API/XMLHttpRequest/withCredentials](https://developer.mozilla.org/zh-CN/docs/Web/API/XMLHttpRequest/withCredentials)**
+
+> XMLHttpRequest.withCredentials  属性是一个Boolean类型，它指示了是否该使用类似cookies,authorization headers(头部授权)或者TLS客户端证书这一类资格证书来创建一个跨站点访问控制（cross-site Access-Control）请求。在同一个站点下使用withCredentials属性是无效的。
+
+> 此外，这个指示也会被用做响应中cookies 被忽视的标示。默认值是false。
+
+> 如果在发送来自其他域的XMLHttpRequest请求之前，未设置withCredentials 为true，那么就不能为它自己的域设置cookie值。而通过设置withCredentials 为true获得的第三方cookies，将会依旧享受同源策略，因此不能被通过document.cookie或者从头部相应请求的脚本等访问。
+
+结合注释的内容可以分析出，这段代码主要是为了解决IE 8/9中跨域请求的问题，提供兼容性支持。
+
+isURLSameOrigin方法，从字面理解应该是判断参数是否符合同源的条件，翻看代码后也验证了这一点。
