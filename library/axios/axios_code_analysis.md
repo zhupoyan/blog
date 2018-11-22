@@ -273,3 +273,188 @@ isURLSameOrigin方法，从字面理解应该是判断参数是否符合同源�
     });
 
 这里定义了一个局部变量resolvePromise，并给方法添加一个Promise类型变量，Promise内容是将resolve回调赋值给变量resolvePromise。接着将CancelToken实例对象赋值给局部变量token，然后执行参数executor方法，并传递一个方法，可接收一个名为message的参数。这个方法首先判断了，当前CancelToken实例对象是否已经有名为reason的属性，若存在且不为false，表示取消ajax请求的操作已经执行了，就不再执行后续的操作了，否则往下走，给当前CancelToken实例对象定义reason属性为一个Cancel对象，并将message作为参数，随后执行resolvePromise方法，并将reason属性作为参数。（这里确实很绕，需要花点时间，结合实际场景更易理解）
+
+    /**
+    * Throws a `Cancel` if cancellation has been requested.
+    */
+    CancelToken.prototype.throwIfRequested = function throwIfRequested() {
+      if (this.reason) {
+        throw this.reason;
+      }
+    };
+
+这里给CancelToken的原型对象添加了一个名为throwIfRequested的方法，内容是判断当前实例对象的reason是否存在，若是，则throw这个变量，由上面的分析可以知道reason是一个Cancel实例对象。
+
+    /**
+    * Returns an object that contains a new `CancelToken` and a function that, when called,
+    * cancels the `CancelToken`.
+    */
+    CancelToken.source = function source() {
+      var cancel;
+      var token = new CancelToken(function executor(c) {
+        cancel = c;
+      });
+      return {
+        token: token,
+        cancel: cancel
+      };
+    };
+
+这里给CancelToken类添加一个名为source的方法，返回一个对象，其中token属性为一个新的CancelToken实例对象，参数是一个方法，会将参数赋值给另一个待return的属性cancel。
+
+#### Cancel.js
+
+这个模块同样也只是返回一个名为Cancel的对象，根据注释可以得知，这个对象是用来当一个操作被取消时throw出去的。
+
+    function Cancel(message) {
+      this.message = message;
+    }
+
+    Cancel.prototype.toString = function toString() {
+      return 'Cancel' + (this.message ? ': ' + this.message : '');
+    };
+
+    Cancel.prototype.__CANCEL__ = true;
+
+Cancel类只有一个属性message，从构造函数参数中获取，Cancel原型对象添加一个名为toString的方法，返回message的值，还添加一个名为__CANCEL__的属性，并初始化为true，这个属性在这里暂时不能判断能起到什么作用，先略过。
+
+#### isCancel.js
+
+    module.exports = function isCancel(value) {
+      return !!(value && value.__CANCEL__);
+    };
+
+这个模块只输出一个方法，就是用来判断参数是否存在，并且参数的__CANCEL__是否存在，从这我们可以推断出，这个value参数，大概率就是个Cancel对象实例。
+
+### defaults.js
+
+前面谈到过这个模块主要是一些默认的配置，因为这个模块在core模块里面可能被频繁调用（事实上在一开始的axios.js就已经被调用过了），所以先看一下里面有些什么。
+
+大概翻阅一下发现果不其然它输出的就是一个默认的ajax请求的配置，我们从defaults对象开始逐个属性分析。
+
+    adapter: getDefaultAdapter()
+
+这个属性容易理解是个适配器，是从一个名为getDefaultAdapter的方法获取的，那么就看看这个方法。
+
+    function getDefaultAdapter() {
+      var adapter;
+      if (typeof XMLHttpRequest !== 'undefined') {
+        // For browsers use XHR adapter
+        adapter = require('./adapters/xhr');
+      } else if (typeof process !== 'undefined') {
+        // For node use HTTP adapter
+        adapter = require('./adapters/http');
+      }
+      return adapter;
+    }
+
+这个方法也很好理解，就是判断全局环境下是有XMLHttpRequest还是有process，如果是前者，代表是浏览器环境，那就引入./adapters/xhr这个模块并返回，如果是后者，代表是node环境，那就引入./adapters/http这个模块并返回。
+
+    transformRequest: [function transformRequest(data, headers) {
+      normalizeHeaderName(headers, 'Content-Type');
+      if (utils.isFormData(data) ||
+        utils.isArrayBuffer(data) ||
+        utils.isBuffer(data) ||
+        utils.isStream(data) ||
+        utils.isFile(data) ||
+        utils.isBlob(data)
+      ) {
+        return data;
+      }
+      if (utils.isArrayBufferView(data)) {
+        return data.buffer;
+      }
+      if (utils.isURLSearchParams(data)) {
+        setContentTypeIfUnset(headers, 'application/x-www-form-urlencoded;charset=utf-8');
+        return data.toString();
+      }
+      if (utils.isObject(data)) {
+        setContentTypeIfUnset(headers, 'application/json;charset=utf-8');
+        return JSON.stringify(data);
+      }
+      return data;
+    }]
+
+这个名为transformRequest的属性，字面理解是转化请求，暂时可以理解为是对ajax请求做一些参数格式化之类的，它的值是一个数组，里面只有一个接收data和headers参数的方法。
+
+首先调用了名为normalizeHeaderName的方法，那就看看这个方法的内容。
+
+    function normalizeHeaderName(headers, normalizedName) {
+      utils.forEach(headers, function processHeader(value, name) {
+        if (name !== normalizedName && name.toUpperCase() === normalizedName.toUpperCase()) {
+          headers[normalizedName] = value;
+          delete headers[name];
+        }
+      });
+    };
+
+它做的事情其实正如其名，就是将headers参数的字段名常规化，它会遍历headers对象，如果字段名与normalizedName不全等，但是字段名的大写与normalizedName的大写的值相同，那么就给headers的normalizedName字段赋予对应的值，并将之前不符合规格的字段给删除。
+
+继续阅读transformRequest方法，所以它首先是将headers参数的Content-Type字段给常规化，接着做了一系列的判断，判断data参数是否是FormData、ArrayBuffer、Buffer、Stream、File、Blob中的一种，符合的话就返回data。往下是判断data是否是a view on an ArrayBuffer，符合的话就返回data.buffer。再往下判断data是否是URLSearchParams类型的值，符合的话就执行setContentTypeIfUnset方法：
+
+    function setContentTypeIfUnset(headers, value) {
+      if (!utils.isUndefined(headers) && utils.isUndefined(headers['Content-Type'])) {
+        headers['Content-Type'] = value;
+      }
+    }
+
+它会判断headers参数是否定义，并且headers的Content-Type是否未定义，如果都满足则给headers的Content-Type定义为value。
+
+回到URLSearchParams的判断，则是对headers参数做判断，符合的话就给headers的Content-Type设定值为application/x-www-form-urlencoded;charset=utf-8，然后返回data.toString的结果。
+
+再往下，判断data是否是对象类型，如果是，则对headers参数做判断，符合的话就给headers的Content-Type设定值为application/json;charset=utf-8，然后返回JSON.stringify(data)的结果。
+
+如果上面所述的判断都不符合，最后就返回原模原样的data。
+
+    transformResponse: [function transformResponse(data) {
+      /*eslint no-param-reassign:0*/
+      if (typeof data === 'string') {
+        try {
+          data = JSON.parse(data);
+        } catch (e) { /* Ignore */ }
+      }
+      return data;
+    }]
+
+这个属性字面理解为转化返回的response对象，同样是一个只有一个方法的数组的形式，内容也简单，就是判断data参数的类型如果是string，则JSON.parse(data)一下，并且转化的语句放入try语句块内，防止转化出错阻止了之后的js的执行，最后返回处理后的data。
+
+    /**
+      * A timeout in milliseconds to abort a request. If set to 0 (default) a
+      * timeout is not created.
+      */
+    timeout: 0,
+
+    xsrfCookieName: 'XSRF-TOKEN',
+    xsrfHeaderName: 'X-XSRF-TOKEN',
+
+    maxContentLength: -1,
+
+    validateStatus: function validateStatus(status) {
+      return status >= 200 && status < 300;
+    }
+
+最后的部分是设置超时属性timeout，默认值为0，即默认不设置超时。设置xsrfCookieName为XSRF-TOKEN。设置xsrfHeaderName为X-XSRF-TOKEN。设置maxContentLength为-1，这个属性字面理解是最长文本长度，由于没有注释，所以还得结合使用时的实际情况去理解。validateStatus属性是一个方法，判断参数的值是否在200和300之间，这里也好理解，这个参数大概就是请求返回的status的值，如果是2开头则返回true，因为2开头基本是请求成功，否则为false。
+
+    defaults.headers = {
+      common: {
+        'Accept': 'application/json, text/plain, */*'
+      }
+    };
+
+    utils.forEach(['delete', 'get', 'head'], function forEachMethodNoData(method) {
+      defaults.headers[method] = {};
+    });
+
+    utils.forEach(['post', 'put', 'patch'], function forEachMethodWithData(method) {
+      defaults.headers[method] = utils.merge(DEFAULT_CONTENT_TYPE);
+    });
+
+最后是给defaults的headers赋了默认值，给headers里面遍历生成三个名为delete、get、head的空对象，给headers里面遍历生成三个名为post、put、patch的对象，里面只有一个Content-Type字段，值为application/x-www-form-urlencoded。
+
+### /core
+
+终于到了最终的大BOSS，核心模块core，大概翻看一下能知道Axios.js就是核心文件,就从这里开始分析。
+
+#### Axios.js
+
+
