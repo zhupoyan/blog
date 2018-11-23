@@ -457,4 +457,229 @@ Cancel类只有一个属性message，从构造函数参数中获取，Cancel原�
 
 #### Axios.js
 
+如果对之前所分析的内容有一个整体的理解的童鞋应该已经发现了，写了这么多代码做了这么多事情，其实最核心的东西就是这里面的Axios对象，我们平常使用axios其实就是使用它的一个实例对象，注意是实例对象而不是它本身。话不多说看代码！
 
+    /**
+     * Create a new instance of Axios
+     *
+     * @param {Object} instanceConfig The default config for the instance
+     */
+    function Axios(instanceConfig) {
+      this.defaults = instanceConfig;
+      this.interceptors = {
+        request: new InterceptorManager(),
+        response: new InterceptorManager()
+      };
+    }
+
+本以为这个对象应该会有特别多的内容，结果就两行？不着急，仔细阅读一下，首先给对象定义一个名为defaults的属性，值取自于构造函数的参数instanceConfig，字面理解就是一个配置对象，接着定义了一个名为interceptors的对象属性，interceptors这个词可能还是挺多小伙伴不太了解，它通常称为拦截器，里面有两个属性分别是request和response，均为InterceptorManager的实例对象，字面理解叫做拦截器管理者，那就看看它里面是啥。
+
+#### InterceptorManager.js
+
+    function InterceptorManager() {
+      this.handlers = [];
+    }
+
+这个模块也只输出这一个方法对象，构造函数只定义一个叫handlers的空数组属性。
+
+    /**
+     * Add a new interceptor to the stack
+     *
+     * @param {Function} fulfilled The function to handle `then` for a `Promise`
+     * @param {Function} rejected The function to handle `reject` for a `Promise`
+     *
+     * @return {Number} An ID used to remove interceptor later
+     */
+    InterceptorManager.prototype.use = function use(fulfilled, rejected) {
+      this.handlers.push({
+        fulfilled: fulfilled,
+        rejected: rejected
+      });
+      return this.handlers.length - 1;
+    };
+
+这里是给InterceptorManager的原型对象定义一个叫use的方法，这里的注释其实已经解释的很清楚了，它是给栈添加一个拦截器的，这个栈指的就是前面的handlers，两个参数分别是一个待传进来处理的Promise的then和reject，最后返回一个ID，其实就是push的进来的这个对象在handlers中的序号，用于清除当前拦截器。
+
+    /**
+     * Remove an interceptor from the stack
+     *
+     * @param {Number} id The ID that was returned by `use`
+     */
+    InterceptorManager.prototype.eject = function eject(id) {
+      if (this.handlers[id]) {
+        this.handlers[id] = null;
+      }
+    };
+
+这个方法就是用于清除指定ID的拦截器的。
+
+    /**
+     * Iterate over all the registered interceptors
+     *
+     * This method is particularly useful for skipping over any
+     * interceptors that may have become `null` calling `eject`.
+     *
+     * @param {Function} fn The function to call for each interceptor
+     */
+    InterceptorManager.prototype.forEach = function forEach(fn) {
+      utils.forEach(this.handlers, function forEachHandler(h) {
+        if (h !== null) {
+          fn(h);
+        }
+      });
+    };
+
+这个方法用于执行handlers里面的所有拦截器，若遍历到null，则不做操作。
+
+回到Axios.js，我们先看看底下两个内容比较少的方法：
+
+    // Provide aliases for supported request methods
+    utils.forEach(['delete', 'get', 'head', 'options'], function forEachMethodNoData(method) {
+      /*eslint func-names:0*/
+      Axios.prototype[method] = function(url, config) {
+        return this.request(utils.merge(config || {}, {
+          method: method,
+          url: url
+        }));
+      };
+    });
+
+    utils.forEach(['post', 'put', 'patch'], function forEachMethodWithData(method) {
+      /*eslint func-names:0*/
+      Axios.prototype[method] = function(url, data, config) {
+        return this.request(utils.merge(config || {}, {
+          method: method,
+          url: url,
+          data: data
+        }));
+      };
+    });
+
+注释的解释是，给支持的请求方法添加别名，那看过axios的官方文档的童鞋应该秒懂了，就是给get、post等等方法定义一个简便的直接调用的请求方法，例如axios.get(url[, config])、axios.post(url[, data[, config]])等等。区别只是在于delete、get、head、options四个方法相比post、put、patch是没有data参数的，其余都一样。
+
+最后看一下给Axios的原型对象赋予了一个叫request的方法里面的内容：
+
+首先大家要明白一点是，这个方法就是对于Axios这个对象来说，发出ajax请求的方法。
+
+    // Allow for axios('example/url'[, config]) a la fetch API
+    if (typeof config === 'string') {
+      config = utils.merge({
+        url: arguments[0]
+      }, arguments[1]);
+    }
+
+这里的注释也说明的很清楚，就是为了让开发者能够像axios('example/url'[, config])这样去使用axios，显得很方便。它的逻辑就是判断第一个参数是否是string类型，如果是，则重新整理一下config参数，让原本的string类型的值加入到第二个参数里面的url属性，那么第二个参数显然就是一个对象，merge新生成的对象代替了旧的config参数。
+
+    config = utils.merge(defaults, {method: 'get'}, this.defaults, config);
+    config.method = config.method.toLowerCase();
+
+第一行的merge，逻辑比较严谨，一下子merge四个对象，优先级顺序是，config参数 > 构造函数传进来的config对象 > {method: 'get'}（默认发起get请求的由来） > 全局默认配置对象defaults。然后将method的值大写。
+
+    // Hook up interceptors middleware
+    var chain = [dispatchRequest, undefined];
+    var promise = Promise.resolve(config);
+
+这里的注释，说实话，我也不太懂。。主要是Hook up，我的理解是挂起，但是也翻译不通，“挂起拦截器中间件”？emmm。。暂且先不管！直接看下面代码。
+
+第二行好理解主要是第一行，定义了一个名为chain的数组变量，字面理解是链，只有一个叫dispatchRequest的变量和一个undefined，看看dispatchRequest是个啥：
+
+#### dispatchRequest.js
+
+字面理解，意思是分发请求。直接看它输出的方法的内容。
+
+    throwIfCancellationRequested(config);
+
+这个方法判断config.cancelToken是否存在，是的话则调用它的throwIfRequested方法，之前分析过，它是判断如果取消请求操作已经发出，就throw一个Cancel对象。
+
+    // Support baseURL config
+    if (config.baseURL && !isAbsoluteURL(config.url)) {
+      config.url = combineURLs(config.baseURL, config.url);
+    }
+
+这里针对配置对象的baseURL参数做处理，判断如果baseURL存在，且config.url不是一个绝对路径，则给config.url重新赋值，合并config.baseURL和config.url。
+
+    // Ensure headers exist
+    config.headers = config.headers || {};
+
+这里就如同注释所说的，确保headers是个存在的对象，故判断config.headers为空时赋予默认值{}。
+
+    // Transform request data
+    config.data = transformData(
+      config.data,
+      config.headers,
+      config.transformRequest
+    );
+
+这里针对config.data做处理，用config.transformRequest方法对config.data和config.headers做处理，并返回给config.data。
+
+    // Flatten headers
+    config.headers = utils.merge(
+      config.headers.common || {},
+      config.headers[config.method] || {},
+      config.headers || {}
+    );
+
+    utils.forEach(
+      ['delete', 'get', 'head', 'post', 'put', 'patch', 'common'],
+      function cleanHeaderConfig(method) {
+        delete config.headers[method];
+      }
+    );
+
+这里是让headers回归正常，符合浏览器的headers的格式，因为之前可能对headers赋予了一些暂存的字段值，现在一并将它们merge，优先级顺序是 config.headers > config.headers[config.method] > config.headers.common，然后遍历清除掉headers里面暂存的以方法名为字段名的值。
+
+    var adapter = config.adapter || defaults.adapter;
+
+这里定义适配器变量，若config配置对象定义了适配器，则使用config的，否则使用全局默认配置的适配器。
+
+    return adapter(config).then(function onAdapterResolution(response) {
+      throwIfCancellationRequested(config);
+
+      // Transform response data
+      response.data = transformData(
+        response.data,
+        response.headers,
+        config.transformResponse
+      );
+
+      return response;
+    }, function onAdapterRejection(reason) {
+      if (!isCancel(reason)) {
+        throwIfCancellationRequested(config);
+
+        // Transform response data
+        if (reason && reason.response) {
+          reason.response.data = transformData(
+            reason.response.data,
+            reason.response.headers,
+            config.transformResponse
+          );
+        }
+      }
+
+      return Promise.reject(reason);
+    });
+
+返回值是一个用适配器发出ajax请求后返回的Promise，当请求成功时，再调用一次throwIfCancellationRequested方法，接着用config.transformResponse处理response.data和response.headers，结果赋值给response.data，最后返回response；当请求失败时，调用isCancel判断一下reason是否未定义，符合则执行throwIfCancellationRequested方法，然后判断reason.response是否存在，符合则用config.transformResponse转化reason.response.data和reason.response.headers，结果赋值给reason.response.data，最后返回一个结果为reject的Promise，传参reason。
+
+回到Axios.js，因此chain的第一个参数，事实上是一个ajax请求完返回的Promise。
+
+    this.interceptors.request.forEach(function unshiftRequestInterceptors(interceptor) {
+      chain.unshift(interceptor.fulfilled, interceptor.rejected);
+    });
+
+    this.interceptors.response.forEach(function pushResponseInterceptors(interceptor) {
+      chain.push(interceptor.fulfilled, interceptor.rejected);
+    });
+
+    while (chain.length) {
+      promise = promise.then(chain.shift(), chain.shift());
+    }
+
+    return promise;
+
+最后这部分，依次是，遍历interceptors的request，将数组内的拦截器逐个unshift进chain的开头；遍历interceptors的response，将数组内的拦截器逐个push进chain的末尾；执行while循环，依次执行chain的拦截器和ajax请求，返回最后执行的promise。
+
+**结尾**
+
+axios大部分代码基本分析了一遍，肯定还有部分代码没有摆出来的，或者是摆出来的代码分析的不到位，甚至有错误的，大家都可以提出来交流一下。剩下的代码大家有兴趣可以自己翻阅，应该都比较好理解，其实说难也没什么难的，不就是个ajax的封装包嘛对吧，我一直坚信一个定律，看一遍不会不要紧，看两遍，三遍，看多几次，每一次总会比上一次看有收获！所以为了有所成长，请坚持下去！
