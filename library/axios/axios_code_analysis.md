@@ -4,7 +4,7 @@
 
 **更新动态：**
 
-> 2018.xx.xx: 前端框架专栏-axios-axios源码解析(C)
+> 2018.11.25: 前端框架专栏-axios-axios源码解析(C)
 
 <br>
 
@@ -78,6 +78,8 @@ utils.js: 一堆协助开发的方法+1
 
 相信小伙伴们应该都听过这样的话，“三长一短选最短”，没错就是英语阅读题的“真理”，那我们采用类似的方案先从文件数最少的目录开始看，即/adapters。这里剧透一下，该目录下有一个http.js和一个xhr.js文件，http.js适配的是nodejs，xhr.js适配的是我们web前端开发，即XMLHttpRequest对象，所以这里暂且只分析xhr.js。
 
+<br>
+
 ### /adapters
 
 #### xhr.js
@@ -114,6 +116,8 @@ isFormData方法引用自utils模块，翻看代码得知这是用来判断参�
 
 下面的if判断意思是，若node环境不为test，全局变量window存在，且含有XDomainRequest字段，XHR对象中没有withCredentials字段，isURLSameOrigin调用结果是否为false。同时满足以上条件时，做往下的一系列操作。那么这里就出现了几个比较陌生的东西，逐个针对地去搜索相关信息了解一下。
 
+<br>
+
 **XDomainRequest [https://developer.mozilla.org/zh-CN/docs/Web/API/XDomainRequest](https://developer.mozilla.org/zh-CN/docs/Web/API/XDomainRequest)**
 
 > 摘要：
@@ -122,6 +126,8 @@ isFormData方法引用自utils模块，翻看代码得知这是用来判断参�
 
 > 该接口可以发送GET和POST请求
 
+<br>
+
 **withCredentials [https://developer.mozilla.org/zh-CN/docs/Web/API/XMLHttpRequest/withCredentials](https://developer.mozilla.org/zh-CN/docs/Web/API/XMLHttpRequest/withCredentials)**
 
 > XMLHttpRequest.withCredentials  属性是一个Boolean类型，它指示了是否该使用类似cookies,authorization headers(头部授权)或者TLS客户端证书这一类资格证书来创建一个跨站点访问控制（cross-site Access-Control）请求。在同一个站点下使用withCredentials属性是无效的。
@@ -129,6 +135,8 @@ isFormData方法引用自utils模块，翻看代码得知这是用来判断参�
 > 此外，这个指示也会被用做响应中cookies 被忽视的标示。默认值是false。
 
 > 如果在发送来自其他域的XMLHttpRequest请求之前，未设置withCredentials 为true，那么就不能为它自己的域设置cookie值。而通过设置withCredentials 为true获得的第三方cookies，将会依旧享受同源策略，因此不能被通过document.cookie或者从头部相应请求的脚本等访问。
+
+<br>
 
 结合注释的内容可以分析出，这段代码主要是为了解决IE 8/9中跨域请求的问题，提供兼容性支持。
 
@@ -242,9 +250,13 @@ isURLSameOrigin方法，从字面理解应该是判断参数是否符合同源�
 
 最后XHR执行send方法发起请求。
 
+<br>
+
 ### /cancel
 
 取消ajax请求模块的主体，浏览一下各个文件容易判断出是CancelToken.js，我们从这开始分析。
+
+<br>
 
 #### CancelToken.js
 
@@ -302,6 +314,8 @@ isURLSameOrigin方法，从字面理解应该是判断参数是否符合同源�
 
 这里给CancelToken类添加一个名为source的方法，返回一个对象，其中token属性为一个新的CancelToken实例对象，参数是一个方法，会将参数赋值给另一个待return的属性cancel。
 
+<br>
+
 #### Cancel.js
 
 这个模块同样也只是返回一个名为Cancel的对象，根据注释可以得知，这个对象是用来当一个操作被取消时throw出去的。
@@ -318,6 +332,8 @@ isURLSameOrigin方法，从字面理解应该是判断参数是否符合同源�
 
 Cancel类只有一个属性message，从构造函数参数中获取，Cancel原型对象添加一个名为toString的方法，返回message的值，还添加一个名为__CANCEL__的属性，并初始化为true，这个属性在这里暂时不能判断能起到什么作用，先略过。
 
+<br>
+
 #### isCancel.js
 
     module.exports = function isCancel(value) {
@@ -325,6 +341,8 @@ Cancel类只有一个属性message，从构造函数参数中获取，Cancel原�
     };
 
 这个模块只输出一个方法，就是用来判断参数是否存在，并且参数的__CANCEL__是否存在，从这我们可以推断出，这个value参数，大概率就是个Cancel对象实例。
+
+<br>
 
 ### defaults.js
 
@@ -451,9 +469,13 @@ Cancel类只有一个属性message，从构造函数参数中获取，Cancel原�
 
 最后是给defaults的headers赋了默认值，给headers里面遍历生成三个名为delete、get、head的空对象，给headers里面遍历生成三个名为post、put、patch的对象，里面只有一个Content-Type字段，值为application/x-www-form-urlencoded。
 
+<br>
+
 ### /core
 
 终于到了最终的大BOSS，核心模块core，大概翻看一下能知道Axios.js就是核心文件,就从这里开始分析。
+
+<br>
 
 #### Axios.js
 
@@ -473,6 +495,8 @@ Cancel类只有一个属性message，从构造函数参数中获取，Cancel原�
     }
 
 本以为这个对象应该会有特别多的内容，结果就两行？不着急，仔细阅读一下，首先给对象定义一个名为defaults的属性，值取自于构造函数的参数instanceConfig，字面理解就是一个配置对象，接着定义了一个名为interceptors的对象属性，interceptors这个词可能还是挺多小伙伴不太了解，它通常称为拦截器，里面有两个属性分别是request和response，均为InterceptorManager的实例对象，字面理解叫做拦截器管理者，那就看看它里面是啥。
+
+<br>
 
 #### InterceptorManager.js
 
@@ -583,6 +607,8 @@ Cancel类只有一个属性message，从构造函数参数中获取，Cancel原�
 
 第二行好理解主要是第一行，定义了一个名为chain的数组变量，字面理解是链，只有一个叫dispatchRequest的变量和一个undefined，看看dispatchRequest是个啥：
 
+<br>
+
 #### dispatchRequest.js
 
 字面理解，意思是分发请求。直接看它输出的方法的内容。
@@ -679,6 +705,8 @@ Cancel类只有一个属性message，从构造函数参数中获取，Cancel原�
     return promise;
 
 最后这部分，依次是，遍历interceptors的request，将数组内的拦截器逐个unshift进chain的开头；遍历interceptors的response，将数组内的拦截器逐个push进chain的末尾；执行while循环，依次执行chain的拦截器和ajax请求，返回最后执行的promise。
+
+<br>
 
 **结尾**
 
